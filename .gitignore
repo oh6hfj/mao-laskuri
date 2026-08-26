@@ -1,0 +1,10 @@
+# Byte-identical duplicate of index.html, kept locally for sending as an
+# attachment. Once Pages is live the link makes it redundant, and committing
+# it would double the repo for nothing.
+Mao Laskuri.html
+
+# scratch
+*.tmp
+*.bak
+font-test.html
+font-samples.html
