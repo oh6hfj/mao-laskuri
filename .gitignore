@@ -3,6 +3,11 @@
 # it would double the repo for nothing.
 Mao Laskuri.html
 
+# "Looking for the Mao" is its own repository with its own GitHub Pages site,
+# so this one must not try to track it. Without this line git would either
+# swallow it as plain files or treat it as an unregistered submodule.
+looking-for-the-mao/
+
 # scratch
 *.tmp
 *.bak
