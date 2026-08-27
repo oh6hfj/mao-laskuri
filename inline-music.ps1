@@ -86,6 +86,26 @@ if ($Panda -and (Test-Path $Panda)) {
 } else {
   Write-Host "panda sound: none yet - the game uses a synthesised fallback"
 }
+# --- optional one-shots. Drop gong.mp3 / whiff.mp3 / escape.mp3 in this folder
+#     and they replace the synthesised versions; leave one out and that sound
+#     stays synthesised. Same onset-trimming applies as to the bat sample.
+foreach ($one in @(
+    @{ base = "gong";   var = "GONG_SRC";   label = "gong (over)" },
+    @{ base = "whiff";  var = "WHIFF_SRC";  label = "whiff      " },
+    @{ base = "escape"; var = "ESCAPE_SRC"; label = "escaped    " })) {
+  $om2 = [regex]::Match($page, ('var ' + $one.var + ' = "[^"]*";'))
+  if (-not $om2.Success) { throw ("could not find " + $one.var + " in index.html") }
+  $hit = Get-ChildItem -Path $PSScriptRoot -File -ErrorAction SilentlyContinue |
+         Where-Object { $_.BaseName -ieq $one.base -and
+                        $_.Extension -match '(?i)\.(mp3|m4a|ogg|opus|wav|aac|flac)$' }
+  if ($hit) {
+    $hf = $hit[0]
+    $page = $page.Replace($om2.Value, ('var ' + $one.var + ' = "' + (Get-DataUri $hf.FullName) + '";'))
+    Write-Host ($one.label + ": " + $hf.Name + "  (" + [math]::Round($hf.Length/1KB,1) + " KB)")
+  } else {
+    Write-Host ($one.label + ": none - synthesised")
+  }
+}
 
 if (-not $Audio) {
   $exts = @("*.mp3","*.m4a","*.ogg","*.opus","*.wav","*.aac","*.flac")
@@ -93,7 +113,7 @@ if (-not $Audio) {
   foreach ($e in $exts) {
     $found += Get-ChildItem -Path $PSScriptRoot -Filter $e -File -ErrorAction SilentlyContinue
   }
-  $found = $found | Where-Object { $_.BaseName -ine "ping" -and $_.BaseName -ine "panda" }
+  $found = $found | Where-Object { $_.BaseName -notin @("gong","whiff","escape") -and $_.BaseName -ine "ping" -and $_.BaseName -ine "panda" }
   if ($found.Count -eq 0) {
     # nothing but the ping - keep whatever music is already inlined
     [IO.File]::WriteAllText($Html, $page, $utf8)
